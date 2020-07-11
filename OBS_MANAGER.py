@@ -26,6 +26,7 @@ class OBS_MANAGER:
         self.data = None
         self.scenes = None
         self.messageid = 0
+        self.controlCount = {}
         return
     def getScenes(self):
         ret = self.ws.call(requests.GetCurrentScene())
@@ -38,30 +39,52 @@ class OBS_MANAGER:
         return
     def switchScene(self,sceneName):
         self.ws.call(requests.SetCurrentScene(sceneName))
-    def updateScene(self,sceneId):
+    def updateScene(self,sceneName,sceneId,speed = 50):
+        self.speed = speed
         currentScene = self.ws.call(requests.GetCurrentScene())
         currentSceneName = currentScene.getName()
         currentSceneData = currentScene.datain
         print(currentSceneName)
-        if currentSceneName in self.keyScenes:
+        if currentSceneName in self.keyScenes and sceneName == currentSceneName:
             destSceneName = getSceneName(currentSceneName,sceneId)
             destScene = getSceneFromName(self.scenes,destSceneName)
             #print(destScene)
-            self.setDest(currentSceneData,destScene)
-            self.updateToEnd()
+            if destScene is not None:
+                self.setDest(currentSceneData,destScene,speed)
+            
+            #self.updateToEnd()
+            
+        return
+    
+    def update(self):
+        for srcName in self.controlCount.keys():
+            if self.controlCount[srcName] > 0:
+                i = self.speed - self.controlCount[srcName]
+                self.controlCount[srcName] -= 1
+                scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
+                data = requests.SetSceneItemTransform(srcName,scale,scale,0).data()
+                data["message-id"] = self.messageid
+                self.messageid += 1
+                self.ws.ws.send(json.dumps(data))
+                data = requests.SetSceneItemPosition(srcName,self.route[srcName]["x"][i],self.route[srcName]["y"][i]).data()
+                data["message-id"] = self.messageid
+                self.messageid += 1
+                self.ws.ws.send(json.dumps(data))
+        time.sleep(0.01)
         return
 
-    def setDest(self,currentScene,destScene):
+    def setDest(self,currentScene,destScene,speed):
         #print("=========================")
         #print currentScene
         #print("=========================")
         #print destScene
         #print("=========================")
-        self.route = makeRoute(currentScene,destScene,{"divNum":100})
+        self.route = makeRoute(currentScene,destScene,{"divNum":speed})
+        for i in self.route.keys():
+            self.controlCount[i] = speed
 
     def updateToEnd(self):
-        for i in range(100):
-            print(i)
+        for i in range(50):
             for srcName in self.route.keys():
                 scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
                 data = requests.SetSceneItemTransform(srcName,scale,scale,0).data()
@@ -90,11 +113,14 @@ def makeRouteSource(cur,dst,divNum):
     out = {}
     params = [u'cx',u'cy',u'source_cx',u'source_cy',u'x',u'y']
     for param in params:
-        out[param] = makeDiv(cur[param],dst[param],divNum)
+        out[param] = makeDiv(cur[param],dst[param],divNum,2.0)
     return out
 
-def makeDiv(st,en,divNum):
-    return np.arange(divNum) * 1.0 * (en - st) / (divNum-1) + st
+def makeDiv(st,en,divNum,ease=2.0):
+    if ease != 1.0:
+        return np.arange(divNum) ** (1./ease) * (divNum**(1./ease)) * (en - st) / (divNum-1) + st
+    else:
+        return np.arange(divNum) * 1.0 * (en - st) / (divNum-1) + st
 
 
 def getKeyScenes(scenes):
@@ -108,6 +134,7 @@ def getSceneFromName(scenes,name):
     for i in scenes:
         if name == i["name"]:
             return i
+    return None
 
 
 def isKeyScene(name):
@@ -120,9 +147,10 @@ def main():
     m = OBS_MANAGER()
     m.getScenes()
     for i in range(3):
-        m.updateScene(1)
-        m.updateScene(2)
-        m.updateScene(3)
+        #m.updateScene(1)
+        #m.updateScene(2)
+        #m.updateScene(3)
+        pass
     pass
 
 if __name__ == "__main__":

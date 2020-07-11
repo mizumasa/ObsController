@@ -1,8 +1,11 @@
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
+from kivy.uix.checkbox import CheckBox 
 from kivy.uix.behaviors import CompoundSelectionBehavior
 from kivy.uix.behaviors import FocusBehavior
 from kivy.app import runTouchApp
+from kivy.clock import Clock
+from kivy.factory import Factory
 
 from OBS_MANAGER import OBS_MANAGER,getSceneName
 
@@ -18,46 +21,10 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
         self.m = OBS_MANAGER()
         self.m.getScenes()
 
-    def keyboard_on_key_down(self, window, keycode, text, modifiers):
-        if super(SelectableGrid, self).keyboard_on_key_down(
-                window, keycode, text, modifiers):
-            return True
-        if self.select_with_key_down(window, keycode, text, modifiers):
-            return True
-        return False
+        self.param = {}
+        self.param["slider1"] = {}
 
-    def keyboard_on_key_up(self, window, keycode):
-        if super(SelectableGrid, self).keyboard_on_key_up(window, keycode):
-            return True
-        if self.select_with_key_up(window, keycode):
-            return True
-        return False
-
-    def goto_node(self, key, last_node, last_node_idx):
-        ''' This function is used to go to the node by typing the number
-        of the text of the button.
-        '''
-        node, idx = super(SelectableGrid, self).goto_node(key, last_node,
-                                                          last_node_idx)
-        if node != last_node:
-            return node, idx
-
-        items = list(enumerate(self.get_selectable_nodes()))
-        '''If self.nodes_order_reversed (the default due to using
-        self.children which is reversed), the index is counted from the
-        starts of the selectable nodes, like normal but the nodes are traversed
-        in the reverse order.
-        '''
-        # start searching after the last selected node
-        if not self.nodes_order_reversed:
-            items = items[last_node_idx + 1:] + items[:last_node_idx + 1]
-        else:
-            items = items[:last_node_idx][::-1] + items[last_node_idx:][::-1]
-
-        for i, child in items:
-            if child.text.startswith(key):
-                return child, i
-        return node, idx
+        Clock.schedule_interval(self.update, 0.01)
 
     def select_node(self, node):
         node.background_color = (1, 0, 0, 1)
@@ -67,6 +34,18 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
         node.background_color = (1, 1, 1, 1)
         super(SelectableGrid, self).deselect_node(node)
 
+    def do_touch_menu(self, instance, touch):
+        if ('button' in touch.profile and touch.button in
+                ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')) or\
+                instance.collide_point(*touch.pos):
+            if instance.type=="top":
+                if instance.text == "reset":
+                    print("reset button")
+                    self.m.getScenes()
+        else:
+            return False
+        return True
+
     def do_touch(self, instance, touch):
         if ('button' in touch.profile and touch.button in
                 ('scrollup', 'scrolldown', 'scrollleft', 'scrollright')) or\
@@ -75,26 +54,69 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
             if instance.type=="scene":
                 self.m.switchScene(instance.scene)
             if instance.type=="move":
-                self.m.updateScene(instance.idx)
+                if instance.scene in self.param["slider1"].keys():
+                    self.m.updateScene(instance.scene,instance.idx,speed = self.param["slider1"][instance.scene])
+                else:
+                    self.m.updateScene(instance.scene,instance.idx)
         else:
             return False
         return True
 
+    def OnSliderValueChange(self,instance,value):
+        print("value",int(value))
+        self.param["slider1"][instance.scene] = int(value)
+
+    def update(self,dt):
+        self.m.update()
+        return
+
 def main():
-    root = SelectableGrid(cols=5, up_count=5, multiselect=True, scroll_count=1)
+    scene_num = 4
+    col_width = scene_num + 3
+    root = SelectableGrid(cols=col_width, up_count=5, multiselect=True, scroll_count=1)
+    print("-------------------------")
     print(root.m.keyScenes)
+    print("-------------------------")
+    topCommand=[
+        ["reset"],
+        ["c0"],
+        ["c1"],
+        ["c2"],
+        ["c3"],
+        ["c4"],
+        ["c5"]
+        ]
+    for i in range(col_width):
+        c = Button(text=topCommand[i][0])
+        c.type = "top"
+        c.bind(on_touch_down=root.do_touch_menu)
+        root.add_widget(c)
+        
     for i in root.m.keyScenes:
         c = Button(text=i)
         c.type = "scene"
         c.scene = i
         c.bind(on_touch_down=root.do_touch)
         root.add_widget(c)
-        for j in range(1,5):
+        for j in range(1,1+scene_num):
             c = Button(text=getSceneName(i,j))
             c.type = "move"
+            c.scene = i
             c.idx = j
             c.bind(on_touch_down=root.do_touch)
             root.add_widget(c)
+
+        c = Factory.Slider(value=30, min=10, max=50, size_hint_y=.3)
+        c.scene = i
+        c.bind(value=root.OnSliderValueChange)
+        root.add_widget(c)
+
+        c = CheckBox()
+        c.type = "check"
+        c.scene = i
+        #c.bind(on_touch_down=root.do_touch)
+        root.add_widget(c)
+
     runTouchApp(root)
 
 if __name__ == "__main__":

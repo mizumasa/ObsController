@@ -6,6 +6,8 @@ import copy
 import numpy as np
 import cv2
 from obswebsocket import obsws, requests
+#pip install obs-websocket-py
+#conda install -c conda-forge kivy
 
 host = "localhost"
 port = 4444
@@ -43,6 +45,7 @@ class OBS_MANAGER:
         self.speed = speed
         currentScene = self.ws.call(requests.GetCurrentScene())
         currentSceneName = currentScene.getName()
+        self.currentSceneName = currentSceneName
         currentSceneData = currentScene.datain
         print(currentSceneName)
         if currentSceneName in self.keyScenes and sceneName == currentSceneName:
@@ -70,6 +73,12 @@ class OBS_MANAGER:
                 data["message-id"] = self.messageid
                 self.messageid += 1
                 self.ws.ws.send(json.dumps(data))
+        if len(self.controlCount.keys())>0:
+            data = requests.SetCurrentScene(self.currentSceneName).data()
+            data["message-id"] = self.messageid
+            self.messageid += 1
+            self.ws.ws.send(json.dumps(data))
+
         time.sleep(0.01)
         return
 

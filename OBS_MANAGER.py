@@ -62,7 +62,7 @@ class OBS_MANAGER:
     def update(self):
         #bUpdate = False
         for srcName in self.controlCount.keys():
-            if self.controlCount[srcName] > 0:
+            if self.controlCount[srcName] > 0 and srcName in self.route.keys():
                 #bUpdate = True
                 i = self.speed - self.controlCount[srcName]
                 self.controlCount[srcName] -= 1

@@ -116,15 +116,20 @@ def makeRoute(currentScene,destScene,info):
     for i in destSources:
         for j in currentSources:
             if i["name"] == j["name"]:
-                routeData[i["name"]] = makeRouteSource(j,i,info["divNum"])
+                ret, value = makeRouteSource(j,i,info["divNum"])
+                if ret:
+                    routeData[i["name"]] = value
     return routeData
 
 def makeRouteSource(cur,dst,divNum):
     out = {}
     params = [u'cx',u'cy',u'source_cx',u'source_cy',u'x',u'y']
+    diff = False
     for param in params:
+        if cur[param] != dst[param]:
+            diff = True
         out[param] = makeDiv(cur[param],dst[param],divNum,2.0)
-    return out
+    return diff, out
 
 def makeDiv(st,en,divNum,ease=2.0):
     if ease != 1.0:

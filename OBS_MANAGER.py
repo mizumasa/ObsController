@@ -60,10 +60,10 @@ class OBS_MANAGER:
         return
     
     def update(self):
-        bUpdate = False
+        #bUpdate = False
         for srcName in self.controlCount.keys():
             if self.controlCount[srcName] > 0:
-                bUpdate = True
+                #bUpdate = True
                 i = self.speed - self.controlCount[srcName]
                 self.controlCount[srcName] -= 1
                 scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
@@ -75,12 +75,11 @@ class OBS_MANAGER:
                 data["message-id"] = self.messageid
                 self.messageid += 1
                 self.ws.ws.send(json.dumps(data))
-        if bUpdate:
-            data = requests.SetCurrentScene(self.currentSceneName).data()
-            data["message-id"] = self.messageid
-            self.messageid += 1
-            self.ws.ws.send(json.dumps(data))
-        time.sleep(0.01)
+                data = requests.SetCurrentScene(self.currentSceneName).data()
+                data["message-id"] = self.messageid
+                self.messageid += 1
+                self.ws.ws.send(json.dumps(data))
+        time.sleep(0.02)
         return
 
     def setDest(self,currentScene,destScene,speed):

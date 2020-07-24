@@ -40,7 +40,7 @@ class OBS_MANAGER:
         return
     def switchScene(self,sceneName):
         self.ws.call(requests.SetCurrentScene(sceneName))
-    def updateScene(self,sceneName,sceneId,speed = 15):
+    def updateScene(self,sceneName,sceneId,speed = 20):
         self.speed = speed
         currentScene = self.ws.call(requests.GetCurrentScene())
         currentSceneName = currentScene.getName()

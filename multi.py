@@ -106,7 +106,7 @@ def main():
             c.bind(on_touch_down=root.do_touch)
             root.add_widget(c)
 
-        c = Factory.Slider(value=15, min=10, max=50, size_hint_y=.3)
+        c = Factory.Slider(value=20, min=10, max=50, size_hint_y=.3)
         c.scene = i
         c.bind(value=root.OnSliderValueChange)
         root.add_widget(c)

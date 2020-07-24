@@ -34,7 +34,6 @@ class OBS_MANAGER:
         ret = self.ws.call(requests.GetCurrentScene())
         #print("current scene : ",ret.getName())
         ret = self.ws.call(requests.GetSceneList())
-        print("scene list : ",ret.datain)
         self.data = ret.datain
         self.scenes = self.data["scenes"]
         self.keyScenes = getKeyScenes(self.scenes)

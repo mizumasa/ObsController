@@ -34,14 +34,14 @@ class OBS_MANAGER:
         ret = self.ws.call(requests.GetCurrentScene())
         #print("current scene : ",ret.getName())
         ret = self.ws.call(requests.GetSceneList())
-        #print("scene list : ",ret.datain)
+        print("scene list : ",ret.datain)
         self.data = ret.datain
         self.scenes = self.data["scenes"]
         self.keyScenes = getKeyScenes(self.scenes)
         return
     def switchScene(self,sceneName):
         self.ws.call(requests.SetCurrentScene(sceneName))
-    def updateScene(self,sceneName,sceneId,speed = 50):
+    def updateScene(self,sceneName,sceneId,speed = 15):
         self.speed = speed
         currentScene = self.ws.call(requests.GetCurrentScene())
         currentSceneName = currentScene.getName()
@@ -79,6 +79,21 @@ class OBS_MANAGER:
                 data["message-id"] = self.messageid
                 self.messageid += 1
                 self.ws.ws.send(json.dumps(data))
+                if self.controlCount[srcName] == 0:
+                    scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
+                    data = requests.SetSceneItemTransform(srcName,scale,scale,0).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+                    data = requests.SetSceneItemPosition(srcName,self.route[srcName]["x"][i],self.route[srcName]["y"][i]).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+                    data = requests.SetCurrentScene(self.currentSceneName).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+
         time.sleep(0.02)
         return
 

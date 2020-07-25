@@ -79,6 +79,21 @@ class OBS_MANAGER:
                 self.messageid += 1
                 self.ws.ws.send(json.dumps(data))
                 if self.controlCount[srcName] == 0:
+                    time.sleep(0.02)
+                    scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
+                    data = requests.SetSceneItemTransform(srcName,scale,scale,0).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+                    data = requests.SetSceneItemPosition(srcName,self.route[srcName]["x"][i],self.route[srcName]["y"][i]).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+                    data = requests.SetCurrentScene(self.currentSceneName).data()
+                    data["message-id"] = self.messageid
+                    self.messageid += 1
+                    self.ws.ws.send(json.dumps(data))
+                    time.sleep(0.02)
                     scale = 1.0 * self.route[srcName]["cx"][i] / self.route[srcName]["source_cx"][i]
                     data = requests.SetSceneItemTransform(srcName,scale,scale,0).data()
                     data["message-id"] = self.messageid

@@ -91,7 +91,11 @@ def main():
         c.type = "top"
         c.bind(on_touch_down=root.do_touch_menu)
         root.add_widget(c)
-        
+
+    sceneNames = []
+    for i in root.m.scenes:
+        sceneNames.append(i["name"])
+
     for i in root.m.keyScenes:
         c = Button(text=i)
         c.type = "scene"
@@ -99,7 +103,10 @@ def main():
         c.bind(on_touch_down=root.do_touch)
         root.add_widget(c)
         for j in range(1,1+scene_num):
-            c = Button(text=getSceneName(i,j))
+            label = getSceneName(i,j)
+            if label not in sceneNames:
+                label = "**"
+            c = Button(text=label)
             c.type = "move"
             c.scene = i
             c.idx = j

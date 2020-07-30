@@ -4,7 +4,6 @@ import time
 import json
 import copy
 import numpy as np
-import cv2
 from obswebsocket import obsws, requests
 #pip install obs-websocket-py
 #conda install -c conda-forge kivy

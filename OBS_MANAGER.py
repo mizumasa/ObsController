@@ -160,7 +160,7 @@ def makeRouteSource(cur,dst,divNum):
 
 def makeDiv(st,en,divNum,ease=2.0):
     if ease != 1.0:
-        return np.arange(divNum) ** (1./ease) * (divNum**(1./ease)) * (en - st) / (divNum-1) + st
+        return np.arange(divNum) ** (1./ease) * ((divNum-1)**(1./ease)) * (en - st) / (divNum-1) + st
     else:
         return np.arange(divNum) * 1.0 * (en - st) / (divNum-1) + st
 

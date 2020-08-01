@@ -54,10 +54,19 @@ class SelectableGrid(FocusBehavior, CompoundSelectionBehavior, GridLayout):
             if instance.type=="scene":
                 self.m.switchScene(instance.scene)
             if instance.type=="move":
-                if instance.scene in self.param["slider1"].keys():
-                    self.m.updateScene(instance.scene,instance.idx,speed = self.param["slider1"][instance.scene])
-                else:
-                    self.m.updateScene(instance.scene,instance.idx)
+                error_num = 0
+                while 1:
+                    try:
+                        if instance.scene in self.param["slider1"].keys():
+                            self.m.updateScene(instance.scene,instance.idx,speed = self.param["slider1"][instance.scene])
+                        else:
+                            self.m.updateScene(instance.scene,instance.idx)
+                        break
+                    except:
+                        print("error")
+                        error_num += 1
+                        if error_num > 2:
+                            break
         else:
             return False
         return True

@@ -10,3 +10,7 @@ pip install obs-websocket-py
 
 ~/anaconda2/bin/python /***/***/ObsController/multi.py
 ```
+
+1. シーンに ****_0をつける (シーン切り替えはカットに指定する)
+2. レイアウト用のシーン ****_1 ****_2 ****_3 を作成する
+3. レイアウト用シーンで映像ソースを並べて画面を構成する
